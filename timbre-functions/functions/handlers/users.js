@@ -101,6 +101,28 @@ exports.addUserDetails = (req, res) => {
         })
 };
 
+// Get own user details
+exports.getAuthenticatedUser = (req, res) => {
+    let userData = {};
+    db.doc(`/users/${req.user.handle}`).get()
+        .then(doc => {
+            if(doc.exists) {
+                userData.credentials = doc.data();
+                return db.collection('followers').where('userHandle', '==', req.user.handle).get();
+            }
+        })
+        .then(data => {
+            userData.followers = [];
+            data.forEach(doc => {
+                userData.followers.push(doc.data());
+            });
+            return res.json(userData);
+        })
+        .catch(err => {
+            console.error(err);
+            return res.status(500).json({ error: err.code });
+        })
+};
 
 // Upload user profile image
 exports.uploadImage = (req, res) => {

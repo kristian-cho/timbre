@@ -23,7 +23,7 @@ const userDetails = {
       website: 'https://user.com',
       location: 'Lonodn, UK'
     },
-    likes: [
+    followers: [
       {
         userHandle: 'user',
         screamId: 'hh7O5oWfWucVzGbHH2pa'
