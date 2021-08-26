@@ -12,6 +12,7 @@ app.get('/posts', getAllPosts);
 app.post('/post', FBAuth, postOnePost);
 app.post('/user/image', FBAuth, uploadImage);
 app.post('/user', FBAuth, addUserDetails);
+app.get('/user', FBAuth, getAuthenticatedUser);
 
 // Users Routes
 app.post('/signup', signup);
