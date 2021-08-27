@@ -194,6 +194,87 @@ exports.unlikePost = (req, res) => {
         })
 };
 
+// Repost Post
+exports.repostPost = (req, res) => {
+    const repostDocument = db.collection('reposts').where('userHandle', '==', req.user.handle)
+        .where('postId', '==', req.params.postId).limit(1);
+    
+    const postDocument = db.doc(`/posts/${req.params.postId}`);
+
+    let postData;
+
+    postDocument.get()
+        .then(doc => {
+            if(doc.exists) {
+                postData = doc.data();
+                postData.postId = doc.id;
+                return repostDocument.get();
+            } else {
+                return res.status(404).json({ error: 'Post not found'});
+            }
+        })
+        .then(data => {
+            if(data.empty) {
+                return db.collection('reposts').add({
+                    postId: req.params.postId,
+                    userHandle: req.user.handle
+                 })
+                .then(() => {
+                    postData.repostCount++;
+                    return postDocument.update({ repostCount: postData.repostCount });
+                })
+                .then(() => {
+                    return res.json(postData);
+                })
+            } else {
+                return res.status(400).json({ error: 'Post already reposted' });
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({ error: err.code });
+        })
+};
+
+// Unrepost Post
+exports.unrepostPost = (req, res) => {
+    const repostDocument = db.collection('reposts').where('userHandle', '==', req.user.handle)
+        .where('postId', '==', req.params.postId).limit(1);
+    
+    const postDocument = db.doc(`/posts/${req.params.postId}`);
+
+    let postData;
+
+    postDocument.get()
+        .then(doc => {
+            if(doc.exists) {
+                postData = doc.data();
+                postData.postId = doc.id;
+                return repostDocument.get();
+            } else {
+                return res.status(404).json({ error: 'Post not found'});
+            }
+        })
+        .then(data => {
+            if(data.empty) {
+                return res.status(400).json({ error: 'Post not reposted already' });
+            } else {
+                return db.doc(`/reposts/${data.docs[0].id}`).delete()
+                    .then(() => {
+                        postData.repostCount--;
+                        return postDocument.update({ repostCount: postData.repostCount });
+                    })
+                    .then(() => {
+                        res.json(postData);
+                    })
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({ error: err.code });
+        })
+};
+
 // Delete Post
 exports.deletePost = (req, res) => {
     const document = db.doc(`/posts/${req.params.postId}`);
