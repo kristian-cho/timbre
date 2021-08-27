@@ -8,6 +8,24 @@ let db = {
             commentCount: 2,
             repostCount: 1
         }
+    ],
+    comments: [
+      {
+        userHandle: 'user',
+        postId: 'kdjsfgdksuufhgkdsufky',
+        body: 'nice one mate!',
+        createdAt: '2019-03-15T10:59:52.798Z'
+      }
+    ],
+    notifications: [
+      {
+        recipient: 'user',
+        sender: 'john',
+        read: 'true | false',
+        postId: 'kdjsfgdksuufhgkdsufky',
+        type: 'like | comment',
+        createdAt: '2019-03-15T10:59:52.798Z'
+      }
     ]
 };
 
@@ -26,11 +44,11 @@ const userDetails = {
     followers: [
       {
         userHandle: 'user',
-        screamId: 'hh7O5oWfWucVzGbHH2pa'
+        postId: 'hh7O5oWfWucVzGbHH2pa'
       },
       {
         userHandle: 'user',
-        screamId: '3IOnFoQexRcofs5OhBXO'
+        postId: '3IOnFoQexRcofs5OhBXO'
       }
     ]
   };
