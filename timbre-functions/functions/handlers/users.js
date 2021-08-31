@@ -101,6 +101,42 @@ exports.addUserDetails = (req, res) => {
         })
 };
 
+// Get any user's details
+
+exports.getUserDetails = (req, res) => {
+    let userData = {};
+    db.doc(`/users/${req.params.handle}`).get()
+        .then((doc) => {
+            if(doc.exists) {
+                userData.user = doc.data();
+                return db.collection('posts').where('userHandle', '==', req.params.handle)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+            } else {
+                return res.status(404).json({ error: "User not found" });
+            }
+        })
+        .then((data) => {
+            userData.posts = [];
+            data.forEach((doc) => {
+                userData.posts.push({
+                    body: doc.data().body,
+                    createdAt: doc.data().createdAt,
+                    userHandle: doc.data().userHandle,
+                    likeCount: doc.data().likeCount,
+                    commentCount: doc.data().commentCount,
+                    repostCount: doc.data().repostCount,
+                    postId: doc.id
+                })
+            });
+            return res.json(userData);
+        })
+        .catch((err) => {
+            console.error(err);
+            return res.status(500).json({ error: err.code });
+        })
+};
+
 // Get own user details
 exports.getAuthenticatedUser = (req, res) => {
     let userData = {};
@@ -194,3 +230,21 @@ exports.uploadImage = (req, res) => {
     });
     busboy.end(req.rawBody);
 };
+
+// Mark notifications read
+
+exports.markNotificationsRead = (req, res) => {
+    let batch = db.batch();
+    req.body.forEach(notificationId => {
+        const notification = db.doc(`/notifications/${notificationId}`);
+        batch.update(notification, { read: true });
+    });
+    batch.commit()
+        .then(() => {
+            return res.json({ message: 'Notifications marked read' });
+        })
+        .catch((err) => {
+            console.error(err);
+            return res.status(500).json({ error: err.code });
+        })
+}
