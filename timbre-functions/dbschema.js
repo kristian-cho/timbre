@@ -23,7 +23,7 @@ let db = {
         sender: 'john',
         read: 'true | false',
         postId: 'kdjsfgdksuufhgkdsufky',
-        type: 'like | comment',
+        type: 'like | comment | repost',
         createdAt: '2019-03-15T10:59:52.798Z'
       }
     ]
