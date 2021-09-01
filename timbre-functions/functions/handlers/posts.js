@@ -14,7 +14,8 @@ exports.getAllPosts = (req, res) => {
                 createdAt: doc.data().createdAt,
                 commentCount: doc.data().commentCount,
                 likeCount: doc.data().likeCount,
-                repostCount: doc.data().repostCount
+                repostCount: doc.data().repostCount,
+                userImage: doc.data().userImage
             });
         });
         return res.json(posts);
@@ -84,7 +85,7 @@ exports.getPost = (req, res) => {
 
 // Comment on post
 exports.commentOnPost = (req, res) => {
-    if(req.body.body.trim() === '') return res.status(400).json({ error: 'Cannot be empty'});
+    if(req.body.body.trim() === '') return res.status(400).json({ comment: 'Cannot be empty'});
 
     const newComment = {
         body: req.body.body,
