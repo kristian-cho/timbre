@@ -23,13 +23,15 @@ const {
     addUserDetails, 
     getAuthenticatedUser,
     getUserDetails,
-    markNotificationsRead 
+    markNotificationsRead,
+    followUser,
+    unfollowUser 
 } = require('./handlers/users'); 
 
 const FBAuth = require('./util/FBAuth');
 
 // Post Routes
-app.get('/posts', getAllPosts);
+// app.get('/posts', getAllPosts);
 app.post('/post', FBAuth, postOnePost);
 app.get('/post/:postId', getPost);
 app.delete('/post/:postId', FBAuth, deletePost);
@@ -48,6 +50,9 @@ app.post('/user', FBAuth, addUserDetails);
 app.get('/user', FBAuth, getAuthenticatedUser);
 app.get('/user/:handle', getUserDetails);
 app.post('/notifications', FBAuth, markNotificationsRead);
+app.get('/user/:handle/follow', FBAuth, followUser);
+app.get('/user/:handle/unfollow', FBAuth, unfollowUser);
+
 
 exports.api = functions.https.onRequest(app);
 

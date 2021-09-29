@@ -1,4 +1,4 @@
-const { admin, db } = require('../util/admin');
+const { admin, db, arrayUnion, arrayRemove } = require('../util/admin');
 
 const config = require('../util/config')
 
@@ -22,6 +22,11 @@ exports.signup = (req, res) => {
 
     const noImg = 'no-img.jpg';
 
+    userDocument = {
+        exists: true,
+        userId: null
+    }
+
     let token, userId
     db.doc(`/users/${newUser.handle}`).get()
         .then(doc => {
@@ -33,6 +38,7 @@ exports.signup = (req, res) => {
         })
         .then(data => {
             userId = data.user.uid;
+            userDocument.userId = userId;
             return data.user.getIdToken();
         })
         .then(idToken => {
@@ -47,6 +53,20 @@ exports.signup = (req, res) => {
                 userId
             }
             db.doc(`/users/${newUser.handle}`).set(userCredentials);
+            db.collection('following').doc(`${newUser.handle}`).set(userDocument)
+                .then(() => {
+                    console.log("Following Document successfully written!");
+                })
+                .catch((err) => {
+                    console.error("Error writing following document: ", error);
+                })
+            db.collection('posts').doc(`${newUser.handle}`).set(userDocument)
+                .then(() => {
+                    console.log("Posts Document successfully written!");
+                })
+                .catch((err) => {
+                    console.error("Error writing posts document: ", error);
+                })
         })
         .then(() => {
             return res.status(201).json({ token });
@@ -107,7 +127,9 @@ exports.getUserDetails = (req, res) => {
         .then((doc) => {
             if(doc.exists) {
                 userData.user = doc.data();
-                return db.collection('posts').where('userHandle', '==', req.params.handle)
+                return db.collection('posts')
+                    .doc(`${req.params.handle}`)
+                    .collection(userPosts)
                     .orderBy('createdAt', 'desc')
                     .get();
             } else {
@@ -142,15 +164,20 @@ exports.getAuthenticatedUser = (req, res) => {
         .then(doc => {
             if(doc.exists) {
                 userData.credentials = doc.data();
-                return db.collection('followers').where('userHandle', '==', req.user.handle).get();
+                return db.collection('followers')
+                    .doc(`${req.user.handle}`)
+                    .collection('userFollowing')
+                    .get();
             }
         })
         .then(data => {
-            userData.followers = [];
+            userData.notifications = [];
             data.forEach(doc => {
-                userData.followers.push(doc.data());
+                userData.notifications.push(doc.data());
             });
-            return db.collection('notifications').where('recipient', '==', req.user.handle)
+            return db.collection('notifications')
+                .doc(`${req.user.handle}`)
+                .collection('userNotifications')
                 .orderBy('createdAt', 'desc').limit(10).get();
         })
         .then(data => {
@@ -244,5 +271,94 @@ exports.markNotificationsRead = (req, res) => {
         .catch((err) => {
             console.error(err);
             return res.status(500).json({ error: err.code });
+        })
+}
+
+// Follow User
+
+exports.followUser = (req, res) => {
+    followDoc = {
+        exists: true,
+        userHandle: req.params.handle
+    }
+
+    var followDocument = db.collection('following')
+                    .doc(`${req.user.handle}`)
+                    .collection('userFollowing')
+                    .where('userHandle', '==', req.params.handle);
+
+    const userDocument = db.doc(`/users/${req.params.handle}`);
+
+    let userData;
+
+    userDocument.get()
+        .then((doc) => {
+            if(doc.exists) {
+                userData = doc.data();
+                userData.userId = doc.id;
+                return followDocument.get();
+            } else {
+                return res.status(404).json({ error: 'User not found'});
+            }
+        })
+        .then(data => {
+            if(data.empty) {
+                return db.collection('following')
+                        .doc(`${req.user.handle}`)
+                        .collection('userFollowing')
+                        .doc(`${req.params.handle}`)
+                        .set(followDoc)
+                    .then(() => {
+                        return res.json(userData);
+                    })
+            } else {
+                return res.status(400).json({ error: 'User already followed' });
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            return res.status(500).json({ error: 'something went wrong '});
+        })
+}
+
+// Unfollow User
+
+exports.unfollowUser = (req, res) => {
+    var followDocument = db.collection('following')
+                    .doc(`${req.user.handle}`)
+                    .collection('userFollowing')
+                    .where('userHandle', '==', req.params.handle);
+
+    const userDocument = db.doc(`/users/${req.params.handle}`);
+
+    let userData;
+
+    userDocument.get()
+        .then((doc) => {
+            if(doc.exists) {
+                userData = doc.data();
+                userData.userId = doc.id;
+                return followDocument.get();
+            } else {
+                return res.status(404).json({ error: 'User not found'});
+            }
+        })
+        .then(data => {
+            if(data.empty) {
+                return res.status(400).json({ error: 'User not followed' });
+            } else {
+                return db.collection('following')
+                        .doc(`${req.user.handle}`)
+                        .collection('userFollowing')
+                        .doc(`${req.params.handle}`)
+                        .delete()
+                    .then(() => {
+                        return res.json(userData);
+                    })
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            return res.status(500).json({ error: 'something went wrong '});
         })
 }

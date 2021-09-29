@@ -1,6 +1,6 @@
 const { db } = require('../util/admin');
 
-exports.getAllPosts = (req, res) => {
+/* exports.getAllPosts = (req, res) => {
     db.collection('posts')
       .orderBy('createdAt', 'desc')
       .get()
@@ -9,6 +9,7 @@ exports.getAllPosts = (req, res) => {
         data.forEach(doc => {
             posts.push({
                 postId: doc.id,
+                linkUrl: doc.data().linkUrl,
                 body: doc.data().body,
                 userHandle: doc.data().userHandle,
                 createdAt: doc.data().createdAt,
@@ -24,15 +25,16 @@ exports.getAllPosts = (req, res) => {
         console.error(err);
         res.status(500).json({ error: err.code });
     });
-}
+} */
 
 exports.postOnePost = (req, res) => {
-    if(req.body.body.trim() === '') {
-        return res.status(400).json({ body: 'Body must not be empty' });
+    if(req.body.linkUrl.trim() === '') {
+        return res.status(400).json({ body: 'Link must not be empty' });
     }
 
     const newPost = {
         body: req.body.body, 
+        linkUrl: req.body.linkUrl,
         userHandle: req.user.handle,
         userImage: req.user.imageUrl,
         createdAt: new Date().toISOString(),
@@ -42,6 +44,8 @@ exports.postOnePost = (req, res) => {
     }
 
     db.collection('posts')
+    //    .doc(`${req.user.handle}`)
+    //    .collection('userPosts')
         .add(newPost)
         .then(doc => {
             const resPost = newPost;
