@@ -2,7 +2,7 @@
 
 **How I worked on this project**
 
-After taking a React + Redux course (https://www.udemy.com/course/react-redux/), I decided to work on a large project to test my skills. Timbre was supposed to be a social media platform build out of my desire to retain the social features previously imbedded into Spotify. I used Javascript throughout the project with an (unfinished) React + Redux frontend with a firebase server as running for the backend.
+After taking a React + Redux course (https://www.udemy.com/course/react-redux/), I decided to work on a large project to test my skills. Timbre was supposed to be a social media platform build out of my desire to retain the social features previously imbedded into Spotify. I used Javascript throughout the project with an (unfinished) React + Redux frontend with a firebase server running for the backend.
 
 **How to navigate this project**
 
